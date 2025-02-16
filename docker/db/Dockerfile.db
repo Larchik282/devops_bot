@@ -7,7 +7,7 @@ ENV POSTGRES_PASSWORD=1234
 ENV POSTGRES_DB=postgres
 
 # Копируем SQL-скрипт для инициализации базы данных
-COPY init.sql /docker-entrypoint-initdb.d/
+COPY db/init.sql /docker-entrypoint-initdb.d/
 
 
 

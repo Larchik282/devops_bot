@@ -1,0 +1,6 @@
+python-telegram-bot==13.7
+psycopg2-binary==2.9.10
+urllib3
+python-dotenv
+paramiko
+matplotlib

@@ -1,54 +1,58 @@
 ---
-- name: Deploy and configure Telegram bot with Docker Compose
-  hosts: all
-  become: yes
-  vars:
-    project_dir: /home/larkined/tgbot
-    compose_file: "{{ project_dir }}/docker-compose.yml"
-
-  tasks:
-    - name: Install required packages
-      apt:
-        name:
-          - python3
-          - python3-pip
-          - docker.io
-          - docker-compose
-        state: present
-        update_cache: yes
-
-    - name: Ensure Docker service is running
-      service:
-        name: docker
-        state: started
-        enabled: yes
-
-    - name: Create project directory
-      file:
-        path: "{{ /home/larkined/project }}"
-        state: directory
-        mode: '0755'
-
-    - name: Copy Docker Compose file
-      copy:
-        src: docker-compose.yml
-        dest: "{{ /home/larkined/project/compose_file }}"
-
-    - name: Copy Dockerfiles
-      copy:
-        src: "{{ item }}"
-        dest: "{{ /home/larkined/project }}/{{ item }}"
-      loop:
-        - Dockerfile.bot
-        - Dockerfile.db
-        - Dockerfile.replica
-
-    - name: Pull Docker images
-      command: docker-compose -f "{{ compose_file }}" pull
-      args:
-        chdir: "{{ project_dir }}"
-
-    - name: Start services with Docker Compose
-      command: docker-compose -f "{{ compose_file }}" up -d
-      args:
-        chdir: "{{ project_dir }}"
+  - name: Deploy and configure Telegram bot with Docker Compose
+    hosts: all
+    become: yes
+    vars:
+      project_dir: /home/larkin/tgbot
+      compose_file: "{{ project_dir }}/docker-compose.yml"
+  
+    tasks:
+      - name: Install required packages
+        apt:
+          name:
+            - python3
+            - python3-pip
+            - docker.io
+            - docker-compose
+          state: present
+          update_cache: yes
+  
+      - name: Ensure Docker service is running
+        service:
+          name: docker
+          state: started
+          enabled: yes
+  
+      - name: Create project directory
+        file:
+          path: "{{ project_dir }}"
+          state: directory
+          mode: '0755'
+  
+      - name: Copy Docker Compose file
+        copy:
+          src: C:\Users\larki\OneDrive\Desktop\bot\devops_bot\docker-compose.yml
+          dest: "{{ compose_file }}"
+  
+      - name: Copy Dockerfiles and other necessary files
+        copy:
+          src: "{{ item }}"
+          dest: "{{ project_dir }}/{{ item }}"
+        loop:
+          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\bot\Dockerfile.bot
+          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\bot\bot.py
+          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\bot\requirements.txt
+          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\db\Dockerfile.db
+          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\db\init.sql
+          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\db_repl\Dockerfile.replica
+  
+      - name: Pull Docker images
+        command: docker-compose -f "{{ compose_file }}" pull
+        args:
+          chdir: "{{ project_dir }}"
+  
+      - name: Start services with Docker Compose
+        command: docker-compose -f "{{ compose_file }}" up -d
+        args:
+          chdir: "{{ project_dir }}"
+  

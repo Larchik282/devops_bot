@@ -27,7 +27,8 @@ services:
       - POSTGRES_PASSWORD=1234
       - POSTGRES_DB=postgres
     volumes:
-      - /home/larkined/tgbot/postgresql:/var/lib/postgresql/data
+      - bot/postgresql.conf:/var/lib/postgresql/data
+      - bot/pg_hba.conf:/var/lib/postgresql/data
       
      
     networks:

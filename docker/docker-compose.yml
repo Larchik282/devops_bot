@@ -5,7 +5,7 @@ services:
     #image: bot_image:latest
     build:
       context: .
-      dockerfile: Dockerfile.bot
+      dockerfile: bot/Dockerfile.bot
     depends_on:
       - db
     environment:
@@ -20,7 +20,7 @@ services:
     #image: db_image:latest
     build:
       context: .
-      dockerfile: Dockerfile.db
+      dockerfile: db/Dockerfile.db
     environment:
     
       - POSTGRES_USER=postgres
@@ -41,7 +41,7 @@ services:
     #image: db_repl_image:latest
     build:
       context: .
-      dockerfile: Dockerfile.replica
+      dockerfile: db_repl/Dockerfile.replica
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1234

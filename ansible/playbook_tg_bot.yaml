@@ -1,15 +1,12 @@
 ---
-- name: Deploy and configure PostgreSQL and Telegram bot
-  hosts: all
+- name: Manage PostgreSQL user, database, and tables
+  hosts: db_machine
   become: yes
   vars:
+    ansible_remote_tmp: /tmp/ansible
     db_user: postgres
     db_password: 1234
     db_name: ptdev
-    repo_url: https://github.com/Larchik282/devops_bot.git
-    repo_branch: ansible
-    bot_dir: /home/larkin/tgbot/ansible
-    db_conf_dir: /etc/postgresql/15/main
 
   tasks:
     - name: Ensure PostgreSQL is installed
@@ -23,6 +20,14 @@
           - git
         state: present
         update_cache: yes
+
+    - name: Create temporary directory for Ansible
+      file:
+        path: "{{ ansible_remote_tmp }}"
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: '0750'
 
     - name: Start PostgreSQL service
       service:

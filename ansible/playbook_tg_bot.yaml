@@ -1,24 +1,71 @@
 ---
-- name: Deploy and configure services
+- name: Deploy and configure PostgreSQL and Telegram bot
   hosts: all
   become: yes
   vars:
+    db_user: postgres
+    db_password: 1234
+    db_name: ptdev
     repo_url: https://github.com/Larchik282/devops_bot.git
     repo_branch: ansible
     bot_dir: /home/larkin/tgbot/ansible
     db_conf_dir: /etc/postgresql/15/main
 
   tasks:
-    - name: Install required packages
+    - name: Ensure PostgreSQL is installed
       apt:
         name:
-          - python3
-          - python3-pip
           - postgresql
           - postgresql-contrib
+          - python3-psycopg2  # Необходим для модуля postgresql_*
+          - python3
+          - python3-pip
           - git
         state: present
         update_cache: yes
+
+    - name: Start PostgreSQL service
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Change password for PostgreSQL user
+      community.postgresql.postgresql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+      become_user: postgres
+
+    - name: Create database ptdev
+      community.postgresql.postgresql_db:
+        name: "{{ db_name }}"
+        owner: "{{ db_user }}"
+      become_user: postgres
+
+    - name: Create table phone(id, phonenum)
+      community.postgresql.postgresql_query:
+        db: "{{ db_name }}"
+        query: |
+          CREATE TABLE phone (
+            id SERIAL PRIMARY KEY,
+            phonenum VARCHAR(20) NOT NULL
+          );
+      become_user: postgres
+
+    - name: Create table mails(id, mail)
+      community.postgresql.postgresql_query:
+        db: "{{ db_name }}"
+        query: |
+          CREATE TABLE mails (
+            id SERIAL PRIMARY KEY,
+            mail VARCHAR(100) NOT NULL
+          );
+      become_user: postgres
+
+    - name: Restart PostgreSQL
+      service:
+        name: postgresql
+        state: restarted
 
     - name: Configure PostgreSQL on primary database server
       block:
@@ -26,12 +73,18 @@
           copy:
             src: pg_hba.conf
             dest: "{{ db_conf_dir }}/pg_hba.conf"
+            owner: postgres
+            group: postgres
+            mode: '0644'
           when: inventory_hostname == "db_machine"
 
         - name: Copy postgresql.conf
           copy:
             src: postgresql.conf
             dest: "{{ db_conf_dir }}/postgresql.conf"
+            owner: postgres
+            group: postgres
+            mode: '0644'
           when: inventory_hostname == "db_machine"
 
         - name: Restart PostgreSQL
@@ -46,12 +99,18 @@
           copy:
             src: pg_hba_replica.conf
             dest: "{{ db_conf_dir }}/pg_hba.conf"
+            owner: postgres
+            group: postgres
+            mode: '0644'
           when: inventory_hostname == "replica_machine"
 
         - name: Copy postgresql.conf for replica
           copy:
             src: postgresql_replica.conf
             dest: "{{ db_conf_dir }}/postgresql.conf"
+            owner: postgres
+            group: postgres
+            mode: '0644'
           when: inventory_hostname == "replica_machine"
 
         - name: Restart PostgreSQL on replica
@@ -71,8 +130,8 @@
       command: pip3 install --break-system-packages -r "{{ bot_dir }}/requirements.txt"
       when: inventory_hostname == "bot_machine"
 
-    - name: Start Telegram bot
-      command: python3 {{ bot_dir }}/botForAnsible.py
+    - name: Start Telegram bot with log redirection
+      command: python3 {{ bot_dir }}/botForAnsible.py > /home/larkin/tgbot/ansible/bot.log 2>&1 &
       async: 1
       poll: 0
       when: inventory_hostname == "bot_machine"

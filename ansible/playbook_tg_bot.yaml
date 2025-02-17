@@ -26,19 +26,19 @@
           copy:
             src: pg_hba.conf
             dest: "{{ db_conf_dir }}/pg_hba.conf"
-          when: inventory_hostname == "db_primary"
+          when: inventory_hostname == "db_machine"
 
         - name: Copy postgresql.conf
           copy:
             src: postgresql.conf
             dest: "{{ db_conf_dir }}/postgresql.conf"
-          when: inventory_hostname == "db_primary"
+          when: inventory_hostname == "db_machine"
 
         - name: Restart PostgreSQL
           service:
             name: postgresql
             state: restarted
-          when: inventory_hostname == "db_primary"
+          when: inventory_hostname == "db_machine"
 
     - name: Configure PostgreSQL on replica server
       block:
@@ -46,35 +46,35 @@
           copy:
             src: pg_hba_replica.conf
             dest: "{{ db_conf_dir }}/pg_hba.conf"
-          when: inventory_hostname == "db_replica"
+          when: inventory_hostname == "replica_machine"
 
         - name: Copy postgresql.conf for replica
           copy:
             src: postgresql_replica.conf
             dest: "{{ db_conf_dir }}/postgresql.conf"
-          when: inventory_hostname == "db_replica"
+          when: inventory_hostname == "replica_machine"
 
         - name: Restart PostgreSQL on replica
           service:
             name: postgresql
             state: restarted
-          when: inventory_hostname == "db_replica"
+          when: inventory_hostname == "replica_machine"
 
     - name: Clone the repository for Telegram bot
       git:
         repo: "{{ repo_url }}"
         dest: "/home/larkin/tgbot"
         version: "{{ repo_branch }}"
-      when: inventory_hostname == "bot_server"
+      when: inventory_hostname == "bot_machine"
 
     - name: Install Python requirements for Telegram bot
       pip:
         requirements: "{{ bot_dir }}/requirements.txt"
         executable: pip3
-      when: inventory_hostname == "bot_server"
+      when: inventory_hostname == "bot_machine"
 
     - name: Start Telegram bot
       command: python3 {{ bot_dir }}/botForAnsible.py
       async: 1
       poll: 0
-      when: inventory_hostname == "bot_server"
+      when: inventory_hostname == "bot_machine"

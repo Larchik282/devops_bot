@@ -1,0 +1,8 @@
+[bot_server]
+bot_machine ansible_host=192.168.68.161 ansible_user=ansible
+
+[db_primary]
+db_machine ansible_host=192.168.68.137 ansible_user=ansible
+
+[db_replica]
+replica_machine ansible_host=replica_machine_ip ansible_user=ansible

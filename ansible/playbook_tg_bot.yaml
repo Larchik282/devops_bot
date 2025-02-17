@@ -1,58 +1,79 @@
 ---
-  - name: Deploy and configure Telegram bot with Docker Compose
-    hosts: all
-    become: yes
-    vars:
-      project_dir: /home/larkin/tgbot
-      compose_file: "{{ project_dir }}/docker-compose.yml"
-  
-    tasks:
-      - name: Install required packages
-        apt:
-          name:
-            - python3
-            - python3-pip
-            - docker.io
-            - docker-compose
-          state: present
-          update_cache: yes
-  
-      - name: Ensure Docker service is running
-        service:
-          name: docker
-          state: started
-          enabled: yes
-  
-      - name: Create project directory
-        file:
-          path: "{{ project_dir }}"
-          state: directory
-          mode: '0755'
-  
-      - name: Copy Docker Compose file
-        copy:
-          src: C:\Users\larki\OneDrive\Desktop\bot\devops_bot\docker-compose.yml
-          dest: "{{ compose_file }}"
-  
-      - name: Copy Dockerfiles and other necessary files
-        copy:
-          src: "{{ item }}"
-          dest: "{{ project_dir }}/{{ item }}"
-        loop:
-          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\bot\Dockerfile.bot
-          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\bot\bot.py
-          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\bot\requirements.txt
-          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\db\Dockerfile.db
-          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\db\init.sql
-          - C:\Users\larki\OneDrive\Desktop\bot\devops_bot\db_repl\Dockerfile.replica
-  
-      - name: Pull Docker images
-        command: docker-compose -f "{{ compose_file }}" pull
-        args:
-          chdir: "{{ project_dir }}"
-  
-      - name: Start services with Docker Compose
-        command: docker-compose -f "{{ compose_file }}" up -d
-        args:
-          chdir: "{{ project_dir }}"
-  
+- name: Deploy and configure services
+  hosts: all
+  become: yes
+  vars:
+    repo_url: https://github.com/your-username/tg-bot-repo.git
+    bot_dir: /home/larkin/tgbot
+    db_conf_dir: /etc/postgresql/12/main
+
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - postgresql
+          - postgresql-contrib
+          - git
+        state: present
+        update_cache: yes
+
+    - name: Configure PostgreSQL on primary database server
+      block:
+        - name: Copy pg_hba.conf
+          copy:
+            src: pg_hba.conf
+            dest: "{{ db_conf_dir }}/pg_hba.conf"
+          when: inventory_hostname == "db_primary"
+
+        - name: Copy postgresql.conf
+          copy:
+            src: postgresql.conf
+            dest: "{{ db_conf_dir }}/postgresql.conf"
+          when: inventory_hostname == "db_primary"
+
+        - name: Restart PostgreSQL
+          service:
+            name: postgresql
+            state: restarted
+          when: inventory_hostname == "db_primary"
+
+    - name: Configure PostgreSQL on replica server
+      block:
+        - name: Copy pg_hba.conf for replica
+          copy:
+            src: pg_hba_replica.conf
+            dest: "{{ db_conf_dir }}/pg_hba.conf"
+          when: inventory_hostname == "db_replica"
+
+        - name: Copy postgresql.conf for replica
+          copy:
+            src: postgresql_replica.conf
+            dest: "{{ db_conf_dir }}/postgresql.conf"
+          when: inventory_hostname == "db_replica"
+
+        - name: Restart PostgreSQL on replica
+          service:
+            name: postgresql
+            state: restarted
+          when: inventory_hostname == "db_replica"
+
+    - name: Clone the repository for Telegram bot
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ bot_dir }}"
+        version: main
+      when: inventory_hostname == "bot_server"
+
+    - name: Install Python requirements for Telegram bot
+      pip:
+        requirements: "{{ bot_dir }}/requirements.txt"
+        executable: pip3
+      when: inventory_hostname == "bot_server"
+
+    - name: Start Telegram bot
+      command: python3 {{ bot_dir }}/bot.py
+      async: 1
+      poll: 0
+      when: inventory_hostname == "bot_server"

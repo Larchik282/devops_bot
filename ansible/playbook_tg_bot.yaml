@@ -67,10 +67,8 @@
         version: "{{ repo_branch }}"
       when: inventory_hostname == "bot_machine"
 
-    - name: Install Python requirements for Telegram bot
-      pip:
-        requirements: "{{ bot_dir }}/requirements.txt"
-        executable: pip3
+    - name: Install Python requirements for Telegram bot with --break-system-packages
+      command: pip3 install --break-system-packages -r "{{ bot_dir }}/requirements.txt"
       when: inventory_hostname == "bot_machine"
 
     - name: Start Telegram bot

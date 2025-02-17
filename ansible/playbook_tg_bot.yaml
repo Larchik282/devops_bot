@@ -3,9 +3,10 @@
   hosts: all
   become: yes
   vars:
-    repo_url: https://github.com/your-username/tg-bot-repo.git
-    bot_dir: /home/larkin/tgbot
-    db_conf_dir: /etc/postgresql/12/main
+    repo_url: https://github.com/Larchik282/devops_bot.git
+    repo_branch: ansible
+    bot_dir: /home/larkin/tgbot/ansible
+    db_conf_dir: /etc/postgresql/15/main
 
   tasks:
     - name: Install required packages
@@ -62,8 +63,8 @@
     - name: Clone the repository for Telegram bot
       git:
         repo: "{{ repo_url }}"
-        dest: "{{ bot_dir }}"
-        version: main
+        dest: "/home/larkin/tgbot"
+        version: "{{ repo_branch }}"
       when: inventory_hostname == "bot_server"
 
     - name: Install Python requirements for Telegram bot
@@ -73,7 +74,7 @@
       when: inventory_hostname == "bot_server"
 
     - name: Start Telegram bot
-      command: python3 {{ bot_dir }}/bot.py
+      command: python3 {{ bot_dir }}/botForAnsible.py
       async: 1
       poll: 0
       when: inventory_hostname == "bot_server"

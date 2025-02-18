@@ -136,14 +136,6 @@
       notify: restart postgres
 
 
-
-
-
-
-    - name: "Load SQL script into a variable"
-      set_fact:
-        migration_sql: "{{ lookup('file', 'migration.sql') }}"
-
     - name: "Execute SQL commands"
       command: >
         psql ptdev -c "

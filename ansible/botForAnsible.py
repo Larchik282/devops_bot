@@ -38,7 +38,7 @@ DB_REPL_HOST = os.getenv('DB_REPL_HOST')
 DB_REPL_PORT = os.getenv('DB_REPL_PORT')
 DB_REPL_SSH_USER = os.getenv('DB_REPL_SSH_USER')
 
-LOG_FILE_PATH = '/var/lib/postgresql/data/log/postgresql.log '
+LOG_FILE_PATH = '/var/log/postgresql/postgresql-15-main.log'
 
 print(DB_PASSWORD)
 

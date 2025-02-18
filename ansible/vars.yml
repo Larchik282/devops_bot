@@ -1,0 +1,7 @@
+---
+db_user: postgres
+db_user_repl: repl_user
+db_password: 1234
+db_name: ptdev
+postgresql_version: 15
+repl_user: repl_user

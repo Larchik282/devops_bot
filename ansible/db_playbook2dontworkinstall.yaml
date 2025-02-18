@@ -204,15 +204,11 @@
 
 - name: Configure PostgreSQL replica for replication
   hosts: replica
-<<<<<<< HEAD
 
   become: yes
 
   vars_files:
     - vars.yml
-=======
-  become: yes
->>>>>>> 50733a383eb369aae884c4926f0e59c413e702bb
   tasks:
     - name: Stop PostgreSQL
       service:
@@ -221,19 +217,11 @@
 
     - name: Remove existing data directory
       file:
-<<<<<<< HEAD
         path: /var/lib/postgresql/data
         state: absent
 
     - name: Copy data from master to replica
       command: pg_basebackup -R -h {{ db_for_repl }} -U repl_user -D /var/lib/postgresql/data -P
-=======
-        path: /var/lib/postgresql/{{ postgresql_version }}/main
-        state: absent
-
-    - name: Copy data from master to replica
-      command: pg_basebackup -h {{ 192.168.68.137 }} -D /var/lib/postgresql/{{ postgresql_version }}/main -U {{ repl_user }} -v -P --wal-method=stream
->>>>>>> 50733a383eb369aae884c4926f0e59c413e702bb
       environment:
         PGPASSWORD: "{{ 1234 }}"
       become_user: postgres
